@@ -1,0 +1,146 @@
+.cart_navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 20px;
+}
+
+.paylane-form {
+     padding: 2px 0 20px 0;
+     font-size: 15px;
+ }
+
+ .paylane-form__field {
+    padding: 5px 0;
+ }
+
+ .paylane-form--bank-transfer .paylane-form__payment-types-list {
+     display: flex;
+     flex-wrap: wrap;
+ }
+
+ .paylane-form--bank-transfer .paylane-form__payment-types-list > li {
+    margin-left: 10px;
+    margin-bottom: 10px;
+    flex: 1 0 20%;
+    text-align: center;
+ }
+
+ .paylane-form--bank-transfer .paylane-form__payment-types-list > li > label {
+    display: inline-flex !important;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: 0.2s opacity ease-in-out;
+    width: 150px;
+    height: 100px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    align-items: center;
+    flex-wrap: wrap;
+ }
+
+ .paylane-form--bank-transfer .paylane-form__payment-types-list > li > label:hover,
+ .paylane-form--bank-transfer .paylane-form__payment-types-list > li > label.checked,
+ .paylane-form--bank-transfer .paylane-form__payment-types-list > li input:checked + label {
+     opacity: 1;
+ }
+
+ .paylane-form--bank-transfer .paylane-form__payment-types-list > li input,
+ .paylane-form--bank-transfer .paylane-form__payment-types-list > li .radio
+  {
+    position: fixed;
+    opacity: 0;
+ }
+
+ .paylane-form--bank-transfer .paylane-form__payment-types-list > li > label > img {
+    display: block;
+    margin: 0 auto;
+    max-width: 125px;
+    max-height: 50px;
+ }
+
+ .paylane-form--bank-transfer .paylane-form__payment-types-list > li > label > span {
+    display: block;
+    width: 100%;
+    font-size: 11px;
+    padding-top: 5px;
+    margin: 0 auto;
+    text-align: center;
+    line-height: 1.25em;
+ }
+
+ .apple-pay-button {
+    -webkit-appearance: -apple-pay-button;
+    -apple-pay-button-type: buy;
+    visibility: visible;
+    display: inline-block;
+    width: 200px;
+    min-height: 30px;
+    border: 1px solid black;
+    background-image: -webkit-named-image(apple-pay-logo-black);
+    background-size: 100% calc(60% + 2px);
+    background-repeat: no-repeat;
+    background-color: white;
+    background-position: 50% 50%;
+    border-radius: 5px;
+    padding: 0px;
+    margin: 5px auto;
+    transition: background-color .15s;
+}
+
+.payment-options .payment-option {
+    display: flex;
+    align-items: center;
+}
+
+.payment-options .payment-option label {
+    display: flex !important;
+    align-items: center;
+    flex-direction: row-reverse;
+}
+
+.payment-options .payment-option label img {
+    max-height: 50px;
+    margin-right: 20px;
+}
+
+body#checkout .additional-information {
+    margin-bottom: 1.25rem;
+}
+
+.paylane-form .button-set-bottom {
+    text-align: right;
+}
+
+.paylane-form button[type="submit"] {
+
+}
+
+.paylane-credit-card-hide-form{
+    display: none !important;
+}
+
+#paylane_payment_button a {
+	  padding: 10px;
+    padding-top: 30px;
+    padding-bottom: 30px;
+	  background-color: #FBFBFB;
+}
+
+#paylane_payment_button a:hover {
+	  background-color: #f6f6f6;
+}
+
+#paylane_payment_button a:after {
+	  display: block;
+	  content: "\f054";
+	  position: absolute;
+	  right: 15px;
+	  margin-top: -11px;
+	  top: 50%;
+	  font-family: "FontAwesome";
+	  font-size: 25px;
+	  height: 22px;
+	  width: 14px;
+	  color: #777777;
+}
