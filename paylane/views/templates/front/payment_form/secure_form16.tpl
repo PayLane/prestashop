@@ -9,7 +9,8 @@
 
 <h3>{{$paymentMethodLabel}}</h3>
 
-<form action="{$action}" method="POST" class="paylane-form paylane-secureform">
+
+<form  id="paylane-form" action="{$action}" method="POST" class="paylane-form paylane-secureform">
 <input type="hidden" name="payment_type" value="SecureForm">
 {foreach from=$data key=name item=elem}
 <input type="hidden" name="{$name}" value="{$elem}">
@@ -20,8 +21,25 @@
         <i class="icon-chevron-left"></i>
         {l s='Other payment methods' mod='paylane'}
     </a>
-    <button class="button btn btn-primary button-medium" type="submit">
+    <button id="submit-paylane" name="submitOrder" class="button btn btn-primary button-medium" type="submit">
         <span>{l s='Confirm order' mod='paylane'}<i class="icon-chevron-right right"></i></span>
     </button>
 </div>
 </form>
+
+
+<script type="application/javascript">
+    $(document).on('click', '#submit-paylane', function(e){
+        e.preventDefault();
+        $.ajax({
+            type: 'POST',
+            url: window.location,
+            async: false,
+            data: $('#paylane-form').serializeArray()
+        }).done(function () {
+            $('#paylane-form').submit();
+        }).fail(function () {
+            alert('Error in request');
+        });
+    });
+</script>

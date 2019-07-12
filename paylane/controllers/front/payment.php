@@ -50,6 +50,11 @@ class PaylanePaymentModuleFrontController extends ModuleFrontController
             Tools::redirect('index.php?controller=order');
         }
 
+        //if is submit data create order
+        if(!empty(Tools::getValue('description')) && !Order::getOrderByCartId(Tools::getValue('description'))) {
+            $this->createOrder();
+        }
+
         if (method_exists('Tools', 'getAllValues')) {
             $params = Tools::getAllValues();
         } else {
@@ -61,7 +66,6 @@ class PaylanePaymentModuleFrontController extends ModuleFrontController
         } else {
             require_once(_PS_MODULE_DIR_ . 'paylane/class/' . $params['payment_type'] . '.php');
             $handler = new $params['payment_type']();
-
             $templateVars = $handler->getTemplateVars();
 
             $pathSsl = Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__ . 'modules/' . $this->module->name . '/';
@@ -73,10 +77,10 @@ class PaylanePaymentModuleFrontController extends ModuleFrontController
                 'this_path_ssl' => $pathSsl
             ), $templateVars));
 
+
             if ($params['payment_type'] === 'PaylanePayPal') {
                 $params['payment_type'] = 'Paypal';
             }
-
             $this->setTemplate('payment_form/' . $this->toSnakeCase($params['payment_type']) . '16.tpl');
         }
     }
@@ -90,4 +94,22 @@ class PaylanePaymentModuleFrontController extends ModuleFrontController
         }
         return implode('_', $ret);
     }
+
+
+    protected function createOrder(){
+        die(
+            $this->module->validateOrder(
+                (int)$this->context->cart->id,
+                (int)Configuration::get('PAYLANE_PAYMENT_STATUS_PENDING'),
+                sprintf('%01.2f', $this->context->cart->getOrderTotal(true, Cart::BOTH)),
+                'Paylane',
+                null,
+                [],
+                (int)$this->context->cart->id_currency,
+                false,
+                $this->context->customer->secure_key
+            )
+        );
+    }
+
 }
