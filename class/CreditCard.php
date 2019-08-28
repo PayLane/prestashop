@@ -341,7 +341,7 @@ class CreditCard extends PaymentMethodAbstract
 
         $data['amount'] = sprintf('%01.2f', $cart->getOrderTotal());
         $data['currency'] = $currency->iso_code;
-        $data['description'] = $cart->id;
+        $data['description'] = 'CartID #'.$cart->id;
 
         if (!empty($paymentParams['id_sale'])) {
             $result = $this->client->resaleBySale($data);
