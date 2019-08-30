@@ -26,7 +26,7 @@
 
 require_once(dirname(__FILE__).'/core/core.php');
 
-// prestashop 1.7
+// prestashop 1.7  // more test
 //use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 
 if (!defined('_PS_VERSION_')) {
