@@ -179,17 +179,23 @@ class PaylanePaymentStatusModuleFrontController extends ModuleFrontController
         $paymentStatus = $this->getPaymentStatus($paymentResponse);
         PrestaShopLogger::addLog('Paylane - payment status : '. $paymentStatus, 1, null, 'Cart', $cartId, true);
 
-        $this->module->validateOrder(
-            $cartId,
-            $paymentStatus,
-            $transactionLog['amount'],
-            $transactionLog['payment_name'],
-            null,
-            array(),
-            $currency->id,
-            false,
-            $customer->secure_key
-        );
+        // LK
+        if(!($idOrder = Order::getOrderByCartId($cartId)) ) {
+            $this->module->validateOrder(
+                $cartId,
+                $paymentStatus,
+                $transactionLog['amount'],
+                $transactionLog['payment_name'],
+                null,
+                array(),
+                $currency->id,
+                false,
+                $customer->secure_key
+            );
+        } else {
+            $order = new Order($idOrder);
+            $order->setCurrentState($paymentStatus);
+        }
 
         $orderId = $this->module->currentOrder;
         $this->context->cookie->paylane_paymentName = $transactionLog['payment_name'];

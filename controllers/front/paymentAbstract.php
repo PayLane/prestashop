@@ -79,10 +79,27 @@ class PaylanePaymentAbstractModuleFrontController extends ModuleFrontController
            }
          */
 
-
         $templateName = str_replace(
             'PAYMENT_METHOD', strtolower($this->paymentMethod), $this->templateName
         );
+
+        // LK
+        $paymentName = $this->module->displayName . ' | ' . $this->paymentMethod;
+        $customer = new Customer($this->context->cart->id_customer);
+
+
+        $this->module->validateOrder(
+            (int)$cart->id,
+            Configuration::get('PAYLANE_PAYMENT_STATUS_PENDING'),
+            $cart->getOrderTotal(),
+            $paymentName,
+            null,
+            [],
+            (int)$cart->id_currency,
+            false,
+            $customer->secure_key
+        );
+
         $this->setTemplate($templateName);
 
     }

@@ -132,7 +132,7 @@ class PaylaneGeneralModuleFrontController extends ModuleFrontController
         $redirectUrl = 'index.php?controller=order-confirmation&id_cart=';
         $redirectUrl .= (int)$cart->id.'&id_module='.(int)$this->module->id;
         $redirectUrl .= '&id_order='.$this->module->currentOrder.'&key='.$customer->secure_key;
-
+var_dump($redirectUrl); die;
         Tools::redirect($redirectUrl);
     }
 }

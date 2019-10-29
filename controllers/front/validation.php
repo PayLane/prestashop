@@ -52,7 +52,6 @@ class PaylaneValidationModuleFrontController extends ModuleFrontController
         if (isset($payment) && isset($payment['additional_information'])) {
             $paymentParams = $payment['additional_information'];
         }
-
         if (isset($paymentParams['type'])) {
             require_once(_PS_MODULE_DIR_ . 'paylane/class/' . $paymentParams['type'] . '.php');
             $handler = new $paymentParams['type']();
@@ -84,15 +83,16 @@ class PaylaneValidationModuleFrontController extends ModuleFrontController
         } else {
             $responseStatus = $this->getResponseStatus();
         }
-
         PrestaShopLogger::addLog('Paylane - return url order ID:'. $orderId, 1, null, 'Cart', $cartId, true);
 
+
+        $this->checkPaymentStatus($cartId, $responseStatus);
         if ($orderId) {
             PrestaShopLogger::addLog('validate order', 1, null, 'Cart', $cartId, true);
             $this->validateOrder($cartId, $responseStatus['transaction_id']);
         } else {
             PrestaShopLogger::addLog('prestashop order not found', 1, null, 'Cart', $cartId, true);
-            $this->checkPaymentStatus($cartId, $responseStatus);
+            // $this->checkPaymentStatus($cartId, $responseStatus);
         }
     }
 
@@ -114,6 +114,7 @@ class PaylaneValidationModuleFrontController extends ModuleFrontController
 
     protected function validateOrder($cartId, $transactionId)
     {
+        ;
         $order = $this->module->getOrderByTransactionId($transactionId);
 
         PrestaShopLogger::addLog('transaction log order : '.print_r($order, true), 1, null, 'Cart', $cartId, true);
@@ -208,7 +209,8 @@ class PaylaneValidationModuleFrontController extends ModuleFrontController
             $this->redirectSuccess($cartId);
 
         } elseif (isset($responseStatus) && $responseStatus['status'] == '-2') {
-
+            //LK
+            /*
             $PaymentStatus = new PaylanePaymentStatusModuleFrontController();
             $currency = $this->context->currency;
             $customer = new Customer($cart->id_customer);
@@ -223,7 +225,9 @@ class PaylaneValidationModuleFrontController extends ModuleFrontController
                 (int)$currency->id,
                 false,
                 $customer->secure_key
-            );
+            );*/
+            $order = new Order(Order::getOrderByCartId($cartId));
+            $order->setCurrentState(Configuration::get('PAYLANE_PAYMENT_STATUS_FAILED'));
 
             $errorStatus = PaylanePaymentCore::getErrorMessage($responseStatus);
             $this->redirectError($errorStatus);
@@ -258,6 +262,7 @@ class PaylaneValidationModuleFrontController extends ModuleFrontController
 
     protected function redirectPaymentReturn()
     {
+        die('sadgfddcgdfgfd');
         $url = $this->context->link->getModuleLink('paylane', 'paymentReturn', array(
             'secure_key' => $this->context->customer->secure_key), true);
         PrestaShopLogger::addLog('rediret to payment return : '.$url, 1, null, 'Cart', $this->context->cart->id, true);
