@@ -54,6 +54,18 @@ class ApplePay extends PaymentMethodAbstract
 
     public function getPaymentConfig()
     {
+        $filename = _PS_ROOT_DIR_ . '/.well-known/apple-developer-merchantid-domain-association';
+        $dirname = dirname($filename);
+        if (!is_dir($dirname))
+        {
+            mkdir($dirname, 0755, true);
+        }
+
+        $cert = (string)Configuration::get('paylane_applepay_certificate');
+        $handle = fopen($filename, 'w+');
+        fwrite($handle, $cert);
+        fclose($handle);
+
         return array(
             'paylane_applepay_label' => array(
                 'type' => 'text',
@@ -64,7 +76,11 @@ class ApplePay extends PaymentMethodAbstract
                 'type' => 'select',
                 'label' => 'Show payment method image',
                 'default' => 1
-            )
+            ),
+            'paylane_applepay_certificate' => array(
+                'type' => 'text',
+                'label' => 'Apple Pay Certificate',
+            ),
         );
     }
 
@@ -141,7 +157,7 @@ class ApplePay extends PaymentMethodAbstract
             'paymentDescription' => $paymentDescription,
             'amount' => sprintf('%01.2f', round($totalPrice, 2)),
             'apiKey' => (string)Configuration::get('PAYLANE_GENERAL_PUBLIC_KEY_API'),
-            'withImage' => (bool)Configuration::get('paylane_applepay_showImg')
+            'withImage' => (bool)Configuration::get('paylane_applepay_showImg'),
         );
     }
 

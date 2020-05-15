@@ -511,6 +511,23 @@ class PayLaneRestClient
         );
     }
 
+    public function googlePaySale(array $params)
+    {
+        return $this->call(
+            'googlepay/sale',
+            'post',
+            $params
+        );
+    }
+
+    public function blikSale(array $params)
+    {
+        return $this->call(
+            'blik/sale',
+            'post',
+            $params
+        );
+    }
     /**
      * Performs Apple Pay authorization
      *
@@ -525,7 +542,23 @@ class PayLaneRestClient
             $params
         );
     }
+    public function googlePayAuthorization(array $params)
+    {
+        return $this->call(
+            'googlepay/authorization',
+            'post',
+            $params
+        );
+    }
 
+    public function blikAuthorization(array $params)
+    {
+        return $this->call(
+            'blik/authorization',
+            'post',
+            $params
+        );
+    }
     /**
      * Method responsible for preparing, setting state and returning answer from rest server
      *

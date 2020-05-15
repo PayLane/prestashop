@@ -83,6 +83,14 @@ class PaylanePaymentCore
             'name' => 'Paylane ApplePay',
             'allowedCountries' => 'ALL'
         ),
+        'GOOGLEPAY' => array(
+            'name' => 'Paylane GooglePay',
+            'allowedCountries' => 'ALL'
+        ),
+        'BLIK' => array(
+            'name' => 'Paylane Blik',
+            'allowedCountries' => 'ALL'
+        ),
     );
 
     public static function getPaymentMethods()

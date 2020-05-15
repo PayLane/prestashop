@@ -42,6 +42,8 @@ require_once(_PS_MODULE_DIR_ . 'paylane/class/DirectDebit.php');
 require_once(_PS_MODULE_DIR_ . 'paylane/class/Sofort.php');
 require_once(_PS_MODULE_DIR_ . 'paylane/class/Ideal.php');
 require_once(_PS_MODULE_DIR_ . 'paylane/class/ApplePay.php');
+require_once(_PS_MODULE_DIR_ . 'paylane/class/GooglePay.php');
+require_once(_PS_MODULE_DIR_ . 'paylane/class/Blik.php');
 
 class Paylane extends PaymentModule
 {
@@ -53,7 +55,9 @@ class Paylane extends PaymentModule
         'DirectDebit',
         'Sofort',
         'Ideal',
-        'ApplePay'
+        'ApplePay',
+        'GooglePay',
+        'Blik'
     );
     protected $formBuilder = array();
     protected $html = '';
@@ -180,6 +184,9 @@ class Paylane extends PaymentModule
             || !Configuration::deleteByName('PAYLANE_SOFORT_ACTIVE')
             || !Configuration::deleteByName('PAYLANE_IDEAL_ACTIVE')
             || !Configuration::deleteByName('PAYLANE_APPLEPAY_ACTIVE')
+            || !Configuration::deleteByName('PAYLANE_GOOGLEPAY_ACTIVE')
+            || !Configuration::deleteByName('PAYLANE_BLIK_ACTIVE')
+
 
             || !Configuration::deleteByName('PAYLANE_NOTIFICATION_URL')
             || !Configuration::deleteByName('PAYLANE_NOTIFICATION_USER')
@@ -706,6 +713,21 @@ class Paylane extends PaymentModule
                 $paymentLocale = $this->l('PAYLANE_FRONTEND_PM_APPLEPAY');
             }
             break;
+        case 'PAYLANE_FRONTEND_PM_GOOGLEPAY':
+            if ($this->l('PAYLANE_FRONTEND_PM_GOOGLEPAY') == "PAYLANE_FRONTEND_PM_GOOGLEPAY") {
+                $paymentLocale = "Paylane GooglePay";
+            } else {
+                $paymentLocale = $this->l('PAYLANE_FRONTEND_PM_GOOGLEPAY');
+            }
+            break;
+        case 'PAYLANE_FRONTEND_PM_BLIK':
+            if ($this->l('PAYLANE_FRONTEND_PM_BLIK') == "PAYLANE_FRONTEND_PM_BLIK") {
+                $paymentLocale = "Paylane Blik";
+            } else {
+                $paymentLocale = $this->l('PAYLANE_FRONTEND_PM_BLIK');
+            }
+            break;
+
         default:
             $paymentLocale = "UNDEFINED";
 
@@ -774,6 +796,21 @@ class Paylane extends PaymentModule
                 $paymentLocale = $this->l('PAYLANE_BACKEND_PM_APPLEPAY');
             }
             break;
+        case 'PAYLANE_BACKEND_PM_GOOGLEPAY':
+            if ($this->l('PAYLANE_BACKEND_PM_GOOGLEPAY') == "PAYLANE_BACKEND_PM_GOOGLEPAY") {
+                $paymentLocale = "Paylane GooglePay";
+            } else {
+                $paymentLocale = $this->l('PAYLANE_BACKEND_PM_GOOGLEPAY');
+            }
+            break;
+        case 'PAYLANE_BACKEND_PM_BLIK':
+            if ($this->l('PAYLANE_BACKEND_PM_BLIK') == "PAYLANE_BACKEND_PM_BLIK") {
+                $paymentLocale = "Paylane Blik";
+            } else {
+                $paymentLocale = $this->l('PAYLANE_BACKEND_PM_Blik');
+            }
+            break;
+
         default:
             $paymentLocale = "UNDEFINED";
 
@@ -906,6 +943,28 @@ class Paylane extends PaymentModule
             $locale['signup']['title'] = "sign up now";
         } else {
             $locale['signup']['title'] = $this->l('PAYLANE_BACKEND_PRES_SIGNUP');
+        }
+
+        if ($this->l('PAYLANE_BACKEND_PRES_ABOUTTITLE2') == "PAYLANE_BACKEND_PRES_ABOUTTITLE2") {
+            $locale['about']['title2'] = "Co zrobić aby włączyć Apple Pay:";
+        } else {
+            $locale['about']['title2'] = $this->l('PAYLANE_BACKEND_PRES_ABOUTTITLE');
+        }
+
+        if ($this->l('PAYLANE_BACKEND_PRES_ABOUTTEXT4') == "PAYLANE_BACKEND_PRES_ABOUTTEXT4") {
+            $locale['about']['text4'] = "1. Wyślij nam na adres support@paylane.com prośbę o uruchomienie Apple Pay na swoim koncie.";
+        } else {
+            $locale['about']['text4'] = $this->l('PAYLANE_BACKEND_PRES_ABOUTTEXT1');
+        }
+        if ($this->l('PAYLANE_BACKEND_PRES_ABOUTTEXT5') == "PAYLANE_BACKEND_PRES_ABOUTTEXT5") {
+            $locale['about']['text5'] = "2. Wklej certyfikat w pole certyfikat.";
+        } else {
+            $locale['about']['text5'] = $this->l('PAYLANE_BACKEND_PRES_ABOUTTEXT2');
+        }
+        if ($this->l('PAYLANE_BACKEND_PRES_ABOUTTEXT6') == "PAYLANE_BACKEND_PRES_ABOUTTEXT6") {
+            $locale['about']['text6'] = "3. Poinformuj nas o wykonaniu powyższych czynności.";
+        } else {
+            $locale['about']['text6'] = $this->l('PAYLANE_BACKEND_PRES_ABOUTTEXT6');
         }
 
         return $locale;
@@ -1529,5 +1588,4 @@ class Paylane extends PaymentModule
         );
         return $selectForm;
     }
-
 }

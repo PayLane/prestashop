@@ -31,7 +31,5 @@
 			          <i class="process-icon-save"></i> {$button.save|escape:'htmlall':'UTF-8'}
 		        </button>
 	      </div>
-
     </div>
-
 </form>
