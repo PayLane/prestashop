@@ -28,7 +28,11 @@ require_once(_PS_MODULE_DIR_ . 'paylane/class/PaymentMethodAbstract.php');
 class DirectDebit extends PaymentMethodAbstract
 {
     protected $paymentType = 'directdebit';
+    private $paylane;
 
+    public function __construct(Module $paylane) {
+        $this->paylane = $paylane;
+    }
     /*
     public function getPaymentOption()
     {
@@ -56,17 +60,18 @@ class DirectDebit extends PaymentMethodAbstract
         return array(
             'paylane_directdebit_label' => array(
                 'type' => 'text',
-                'label' => 'Label',
-                'default' => 'Direct Debit (SEPA)'
+                'label' =>$this->paylane->l('PAYLANE_DIRECT_DEBIT_LABEL', 'directdebit'),
+                'default' => $this->paylane->l('PAYLANE_DIRECT_DEBIT_DEFAULT', 'directdebit'),
             ),
             'paylane_directdebit_showImg' => array(
                 'type' => 'select',
-                'label' => 'Show payment method image',
+                'label' => $this->paylane->l('PAYLANE_DIRECT_DEBIT_SHOW_PAYMENT_IMAGE', 'directdebit'),
                 'default' => 1
             ),
             'paylane_directdebit_mandate_id' => array(
                 'type' => 'text',
-                'label' => 'Mandate ID'
+                'label' => $this->paylane->l('PAYLANE_DIRECT_DEBIT_MANDATE_ID', 'directdebit'),
+                'default' => $this->paylane->l('PAYLANE_DIRECT_DEBIT_MANDATE_ID_DEFAULT', 'directdebit')
             )
         );
     }

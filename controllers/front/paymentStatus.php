@@ -56,7 +56,7 @@ class PaylanePaymentStatusModuleFrontController extends ModuleFrontController
                 );
                 $generatedAntiFraudHash = $this->module->generateAntiFraudHash(
                     $cartId,
-                    Tools::getValue('payment_method'),
+                    $this->getPaymentMethod(),
                     $cart->date_add
                 );
                 $isFraud = $this->module->isFraud($generatedAntiFraudHash, Tools::getValue('secure_payment'));
@@ -114,6 +114,7 @@ class PaylanePaymentStatusModuleFrontController extends ModuleFrontController
             ', Customer Id : '. $cart->id_customer .
             ', Delivery Address : '. $cart->id_address_delivery .
             ', Invoice Address : '. $cart->id_address_invoice;
+
         PrestaShopLogger::addLog($messageLog, 1, null, 'Cart', $cart->id, true);
         if ($cart->id_customer == 0 || $cart->id_address_delivery == 0
             || $cart->id_address_invoice == 0 || !$this->module->active
@@ -143,10 +144,13 @@ class PaylanePaymentStatusModuleFrontController extends ModuleFrontController
                 );
 
             $generatedAntiFraudHash =
-                $this->module->generateAntiFraudHash($cartId, Tools::getValue('payment_method'), $cart->date_add);
-            $isFraud = $this->module->isFraud($generatedAntiFraudHash, Tools::getValue('payment_key'));
+                $this->module->generateAntiFraudHash($cartId, $this->getPaymentMethod(), $cart->date_add);
+            $isFraud = false;
+            if (!empty(Tools::getValue('payment_key'))) {
+                $isFraud = $this->module->isFraud($generatedAntiFraudHash, Tools::getValue('payment_key'));
+            }
 
-            if (!$isPaymentSignatureEqualsGeneratedSignature) {
+            if (!$isPaymentSignatureEqualsGeneratedSignature && !empty($paymentResponse['hash'])) {
                 $paymentResponse['status'] = $this->module->failedStatus;
                 $messageLog = 'Paylane - invalid credential detected';
                 PrestaShopLogger::addLog($messageLog, 1, null, 'Cart', $cartId, true);
@@ -178,18 +182,24 @@ class PaylanePaymentStatusModuleFrontController extends ModuleFrontController
 
         $paymentStatus = $this->getPaymentStatus($paymentResponse);
         PrestaShopLogger::addLog('Paylane - payment status : '. $paymentStatus, 1, null, 'Cart', $cartId, true);
-
-        $this->module->validateOrder(
-            $cartId,
-            $paymentStatus,
-            $transactionLog['amount'],
-            $transactionLog['payment_name'],
-            null,
-            array(),
-            $currency->id,
-            false,
-            $customer->secure_key
-        );
+        
+        if(!($idOrder = Order::getOrderByCartId($cartId)) ) {
+            $this->module->validateOrder(
+                $cartId,
+                $paymentStatus,
+                $transactionLog['amount'],
+                $transactionLog['payment_name'],
+                null,
+                array(),
+                $currency->id,
+                false,
+                $customer->secure_key
+            );
+        }
+        // } else {
+        //     $order = new Order($idOrder);
+        //     $order->setCurrentState($paymentStatus);
+        // }
 
         $orderId = $this->module->currentOrder;
         $this->context->cookie->paylane_paymentName = $transactionLog['payment_name'];
@@ -241,7 +251,7 @@ class PaylanePaymentStatusModuleFrontController extends ModuleFrontController
 
         $transactionLog['payment_type'] = $this->getPaymentType($paymentResponse);
 
-        $transactionLog['payment_method'] = 'PAYLANE_FRONTEND_PM_'.Tools::getValue('payment_method');
+        $transactionLog['payment_method'] = 'PAYLANE_FRONTEND_PM_'.$this->getPaymentMethod();
         $transactionLog['payment_name'] = $this->getPaymentName($transactionLog['payment_type']);
 
         $transactionLog['status'] = $paymentResponse['status'];
@@ -250,6 +260,11 @@ class PaylanePaymentStatusModuleFrontController extends ModuleFrontController
         $transactionLog['payment_response'] = serialize($paymentResponse);
 
         return $transactionLog;
+    }
+
+    protected function getPaymentMethod()
+    {
+        return (Tools::getValue('payment_method')) ? Tools::getValue('payment_method') : Tools::getValue('payment_type');
     }
 
     protected function getPaymentType($paymentResponse)
@@ -353,10 +368,10 @@ class PaylanePaymentStatusModuleFrontController extends ModuleFrontController
     public function isTransactionLogValid($transactionId)
     {
         $order = $this->module->getOrderByTransactionId($transactionId);
-
+        // var_dump($order);exit;
         $messageLog = 'Paylane - existing order : ' . print_r($order, true);
             PrestaShopLogger::addLog($messageLog, 1, null, 'Cart', $this->context->cart->id, true);
-
+        
         if (!empty($order)) {
             return true;
         } else {

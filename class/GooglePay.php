@@ -23,25 +23,29 @@
  *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PayLane sp. z.o.o.
  */
-//TODO ALL
 
 require_once(_PS_MODULE_DIR_ . 'paylane/class/PaymentMethodAbstract.php');
 
 class GooglePay extends PaymentMethodAbstract
 {
     protected $paymentType = 'googlepay';
+    private $paylane;
+
+    public function __construct(Module $paylane) {
+        $this->paylane = $paylane;
+    }
 
     public function getPaymentConfig()
     {
         return array(
             'paylane_googlepay_label' => array(
                 'type' => 'text',
-                'label' => 'Label',
-                'default' => 'Google Pay'
+                'label' => $this->paylane->l('PAYLANE_GOOGLE_PAY_LABEL', 'googlepay'),
+                'default' => $this->paylane->l('PAYLANE_GOOGLE_PAY_DEFAULT', 'googlepay'),
             ),
             'paylane_googlepay_showImg' => array(
                 'type' => 'select',
-                'label' => 'Show payment method image',
+                'label' => $this->paylane->l('PAYLANE_GOOGLE_PAY_SHOW_PAYMENT_METHOD_IMAGE', 'googlepay'),
                 'default' => 1
             ),
         );

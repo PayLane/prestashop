@@ -51,9 +51,9 @@ class PaylanePaymentModuleFrontController extends ModuleFrontController
         }
 
         //if is submit data create order
-        if(!empty(Tools::getValue('description')) && !Order::getOrderByCartId(Tools::getValue('description'))) {
-            $this->createOrder();
-        }
+        // if(!empty(Tools::getValue('description')) && !Order::getOrderByCartId(Tools::getValue('description'))) {
+        //     $this->createOrder();
+        // }
 
         if (method_exists('Tools', 'getAllValues')) {
             $params = Tools::getAllValues();
@@ -64,8 +64,16 @@ class PaylanePaymentModuleFrontController extends ModuleFrontController
         if (!isset($params) || !isset($params['payment_type'])) {
             Tools::redirect('index.php?controller=order');
         } else {
-            require_once(_PS_MODULE_DIR_ . 'paylane/class/' . $params['payment_type'] . '.php');
-            $handler = new $params['payment_type']();
+            if ($params['payment_type'] == 'Blik') {
+                $file_name = 'BLIK';
+            } else {
+                $file_name = $params['payment_type'];
+            }
+
+            require_once(_PS_MODULE_DIR_ . 'paylane/class/' . $file_name . '.php');
+            $paylane = Module::getInstanceByName('paylane');
+            
+            $handler = new $params['payment_type']($paylane);
             $templateVars = $handler->getTemplateVars();
 
             $pathSsl = Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__ . 'modules/' . $this->module->name . '/';
@@ -77,11 +85,12 @@ class PaylanePaymentModuleFrontController extends ModuleFrontController
                 'this_path_ssl' => $pathSsl
             ), $templateVars));
 
-
-            if ($params['payment_type'] === 'PaylanePayPal') {
+            
+            if ($params['payment_type'] === 'PayPal') {
                 $params['payment_type'] = 'Paypal';
             }
             $this->setTemplate('payment_form/' . $this->toSnakeCase($params['payment_type']) . '16.tpl');
+            //?paypal
         }
     }
 
@@ -102,7 +111,7 @@ class PaylanePaymentModuleFrontController extends ModuleFrontController
                 (int)$this->context->cart->id,
                 (int)Configuration::get('PAYLANE_PAYMENT_STATUS_PENDING'),
                 sprintf('%01.2f', $this->context->cart->getOrderTotal(true, Cart::BOTH)),
-                'Paylane',
+                'Paylane ',
                 null,
                 [],
                 (int)$this->context->cart->id_currency,

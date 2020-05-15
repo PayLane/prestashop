@@ -8,8 +8,8 @@
         <h3>{{$postParameters.paymentMethodLabel}}</h3>
 
         <form action="{$postParameters.action}" method="POST" class="paylane-form paylane-paypal">
-            <input type="hidden" name="payment_type" value="PaylanePayPal">
-            <input type="hidden" name="payment[additional_information][type]" value="PaylanePayPal">
+            <input type="hidden" name="payment_type" value="PayPal">
+            <input type="hidden" name="payment[additional_information][type]" value="PayPal">
             <input type="hidden" name="payment[additional_information][back_url]" value="{$postParameters['return_url']|escape:'htmlall':'UTF-8'}" />
 
             {l s='You will be redirected to PayPal website to pay for the order' mod='paylane'}

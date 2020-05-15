@@ -25,6 +25,7 @@
  */
 require_once(dirname(__FILE__).'/paymentAbstract.php');
 require_once(_PS_MODULE_DIR_ . 'paylane/class/CreditCard.php');
+require_once(_PS_MODULE_DIR_ . 'paylane/paylane.php');
 
 class PaylanePaymentCreditcardModuleFrontController extends PaylanePaymentAbstractModuleFrontController
 {
@@ -32,7 +33,8 @@ class PaylanePaymentCreditcardModuleFrontController extends PaylanePaymentAbstra
 
     public function getTemplateVars()
     {
-        $payment = new CreditCard();
+        $paylane = new Paylane();
+        $payment = new CreditCard($paylane);
         return $payment->getTemplateVars();
     }
 

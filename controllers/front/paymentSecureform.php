@@ -26,6 +26,7 @@
 
 require_once(dirname(__FILE__).'/paymentAbstract.php');
  
+
 class PaylanePaymentSecureformModuleFrontController extends PaylanePaymentAbstractModuleFrontController
 {
     protected $paymentMethod = 'SECUREFORM';

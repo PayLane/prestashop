@@ -3,7 +3,7 @@
 		    {foreach from=$payments key=sort item=payment}
 			      <div class="form-group">
 				        <div class="col-lg-2 logo-wrapper">
-					          <img src="{$thisPath|escape:'htmlall':'UTF-8'}views/img/{$payment.type|escape:'htmlall':'UTF-8'}.jpg" alt="{$payment.type|escape:'htmlall':'UTF-8'}" class="payment-config-logo">
+					          <img src="{$thisPath|escape:'htmlall':'UTF-8'}views/img/{$payment.type|escape:'htmlall':'UTF-8'}.png" alt="{$payment.type|escape:'htmlall':'UTF-8'}" class="payment-config-logo">
 				        </div>
 				        <label class="payment-label col-lg-3">
 					          {$payment.title|escape:'htmlall':'UTF-8'}

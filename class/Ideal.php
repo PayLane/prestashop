@@ -28,6 +28,11 @@ require_once(_PS_MODULE_DIR_ . 'paylane/class/PaymentMethodAbstract.php');
 class Ideal extends PaymentMethodAbstract
 {
     protected $paymentType = 'ideal';
+    private $paylane;
+
+    public function __construct(Module $paylane) {
+        $this->paylane = $paylane;
+    }
 
     /*
     public function getPaymentOption()
@@ -56,12 +61,12 @@ class Ideal extends PaymentMethodAbstract
         return array(
             'paylane_ideal_label' => array(
                 'type' => 'text',
-                'label' => 'Label',
-                'default' => 'iDEAL'
+                'label' => $this->paylane->l('PAYLANE_IDEAL_LABEL', 'ideal'),
+                'default' => $this->paylane->l('PAYLANE_IDEAL_DEFAULT', 'ideal'),
             ),
             'paylane_ideal_showImg' => array(
                 'type' => 'select',
-                'label' => 'Show payment method image',
+                'label' => $this->paylane->l('PAYLANE_IDEAL_SHOW_PAYMENT_METHOD_IMAGE', 'ideal'),
                 'default' => 1
             )
         );

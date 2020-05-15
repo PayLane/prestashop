@@ -37,13 +37,13 @@ if (!defined('_PS_VERSION_')) {
 require_once(_PS_MODULE_DIR_ . 'paylane/class/SecureForm.php');
 require_once(_PS_MODULE_DIR_ . 'paylane/class/CreditCard.php');
 require_once(_PS_MODULE_DIR_ . 'paylane/class/BankTransfer.php');
-require_once(_PS_MODULE_DIR_ . 'paylane/class/PaylanePayPal.php');
-require_once(_PS_MODULE_DIR_ . 'paylane/class/DirectDebit.php');
-require_once(_PS_MODULE_DIR_ . 'paylane/class/Sofort.php');
-require_once(_PS_MODULE_DIR_ . 'paylane/class/Ideal.php');
-require_once(_PS_MODULE_DIR_ . 'paylane/class/ApplePay.php');
-require_once(_PS_MODULE_DIR_ . 'paylane/class/GooglePay.php');
-require_once(_PS_MODULE_DIR_ . 'paylane/class/Blik.php');
+require_once(_PS_MODULE_DIR_ . 'paylane/class/PayPal.php');
+// require_once(_PS_MODULE_DIR_ . 'paylane/class/DirectDebit.php');
+// require_once(_PS_MODULE_DIR_ . 'paylane/class/Sofort.php');
+// require_once(_PS_MODULE_DIR_ . 'paylane/class/Ideal.php');
+// require_once(_PS_MODULE_DIR_ . 'paylane/class/ApplePay.php');
+// require_once(_PS_MODULE_DIR_ . 'paylane/class/GooglePay.php');
+require_once(_PS_MODULE_DIR_ . 'paylane/class/BLIK.php');
 
 class Paylane extends PaymentModule
 {
@@ -51,13 +51,13 @@ class Paylane extends PaymentModule
         'SecureForm',
         'CreditCard',
         'BankTransfer',
-        'PaylanePayPal',
-        'DirectDebit',
-        'Sofort',
-        'Ideal',
-        'ApplePay',
-        'GooglePay',
-        'Blik'
+        'PayPal',
+        // 'DirectDebit',
+        // 'Sofort',
+        // 'Ideal',
+        // 'ApplePay',
+        // 'GooglePay',
+        'BLIK',
     );
     protected $formBuilder = array();
     protected $html = '';
@@ -80,25 +80,25 @@ class Paylane extends PaymentModule
     {
         $this->name = 'paylane';
         $this->tab = 'payments_gateways';
-        $this->version = '2.0.3';
+        $this->version = '2.1.0';
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
-        $this->author = 'Paylane';
+        $this->author = $this->l('PAYLANE_AUTHOR_DEFAULT','Paylane');
         $this->module_key = '6f71ca0e0e3465122dfdfeb5d3a43a18';
         $this->paymentMethodShowTitleLogo = array();
 
         $this->bootstrap = true;
         parent::__construct();
 
-        $this->displayName = 'Paylane';
-        $this->description = 'Accepts payments by Paylane';
+        $this->displayName = $this->l('Paylane');
+        $this->description = $this->l('Accepts payments by Paylane');
         if ($this->l('BACKEND_TT_DELETE_DETAILS') == "BACKEND_TT_DELETE_DETAILS") {
             $this->confirmUninstall =  "Are you sure you want to delete your details ?";
         } else {
             $this->confirmUninstall = $this->l('BACKEND_TT_DELETE_DETAILS');
         }
         foreach ($this->paymentClassMethods as $method) {
-            $paymentMethod = new $method();
-            $this->formBuilder[$method] = $paymentMethod->getPaymentConfig();
+		$paymentMethod = new $method($this);
+		$this->formBuilder[$method] = $paymentMethod->getPaymentConfig();
         }
     }
 
@@ -180,11 +180,11 @@ class Paylane extends PaymentModule
             || !Configuration::deleteByName('PAYLANE_CREDITCARD_ACTIVE')
             || !Configuration::deleteByName('PAYLANE_BANKTRANSFER_ACTIVE')
             || !Configuration::deleteByName('PAYLANE_PAYPAL_ACTIVE')
-            || !Configuration::deleteByName('PAYLANE_DIRECTDEBIT_ACTIVE')
-            || !Configuration::deleteByName('PAYLANE_SOFORT_ACTIVE')
-            || !Configuration::deleteByName('PAYLANE_IDEAL_ACTIVE')
-            || !Configuration::deleteByName('PAYLANE_APPLEPAY_ACTIVE')
-            || !Configuration::deleteByName('PAYLANE_GOOGLEPAY_ACTIVE')
+            // || !Configuration::deleteByName('PAYLANE_DIRECTDEBIT_ACTIVE')
+            // || !Configuration::deleteByName('PAYLANE_SOFORT_ACTIVE')
+            // || !Configuration::deleteByName('PAYLANE_IDEAL_ACTIVE')
+            // || !Configuration::deleteByName('PAYLANE_APPLEPAY_ACTIVE')
+            // || !Configuration::deleteByName('PAYLANE_GOOGLEPAY_ACTIVE')
             || !Configuration::deleteByName('PAYLANE_BLIK_ACTIVE')
 
 
@@ -285,25 +285,25 @@ class Paylane extends PaymentModule
             $stateConfig['color'] = 'blue';
             $this->addOrderStatus(
                 'PAYLANE_PAYMENT_STATUS_PENDING',
-                    'Pending',
+                    $this->l('Pending'),
                     $stateConfig
             );
             $stateConfig['color'] = 'blue';
             $this->addOrderStatus(
                 'PAYLANE_PAYMENT_STATUS_PERFORMED',
-                    'Performed',
+                    $this->l('Performed'),
                     $stateConfig
             );
             $stateConfig['color'] = '#72c279';
             $this->addOrderStatus(
                 'PAYLANE_PAYMENT_STATUS_CLEARED',
-                    'Cleared',
+                    $this->l('Cleared'),
                     $stateConfig
             );
             $stateConfig['color'] = 'red';
             $this->addOrderStatus(
                 'PAYLANE_PAYMENT_STATUS_FAILED',
-                    'Error',
+                    $this->l('Error'),
                     $stateConfig
             );
             return true;
@@ -476,15 +476,16 @@ class Paylane extends PaymentModule
 
         $paymentTemplate = '';
         $enabledPayments = $this->getEnabledPayments();
+        $paylane = Module::getInstanceByName('paylane');
 
         foreach ($enabledPayments as $value) {
             foreach ($this->paymentClassMethods as $method) {
                 $name = $value['name'];
-                if ($value['name'] === 'paypal') {
-                    $name = 'paylanepaypal';
-                }
+                // if ($value['name'] === 'paypal') {
+                //     $name = 'PayPal';
+                // }
                 if ($name === strtolower($method)) {
-                    $paymentMethod = new $method();
+                    $paymentMethod = new $method($paylane);
                     if ($method === 'SecureForm') {
                         $paymentTemplate .= $paymentMethod->generatePaymentLinkTemplate($parameters);
                     } else {
@@ -532,7 +533,7 @@ class Paylane extends PaymentModule
                     array(),
                     true
             );
-            $logo = Media::getMediaPath(_PS_MODULE_DIR_.$this->name.'/views/img/'.$value['name'].'.jpg');
+            $logo = Media::getMediaPath(_PS_MODULE_DIR_.$this->name.'/views/img/'.$value['name'].'.png');
 
             $logoHtml = '';
             $paymentName = '';
@@ -659,21 +660,21 @@ class Paylane extends PaymentModule
         switch ($paymentMethod) {
         case 'PAYLANE_FRONTEND_PM_SECUREFORM':
             if ($this->l('PAYLANE_FRONTEND_PM_SECUREFORM') == "PAYLANE_FRONTEND_PM_SECUREFORM") {
-                $paymentLocale = "Paylane SecureForm";
+                $paymentLocale = "Paylane Secure Form";
             } else {
                 $paymentLocale = $this->l('PAYLANE_FRONTEND_PM_SECUREFORM');
             }
             break;
         case 'PAYLANE_FRONTEND_PM_CREDITCARD':
             if ($this->l('PAYLANE_FRONTEND_PM_CREDITCARD') == "PAYLANE_FRONTEND_PM_CREDITCARD") {
-                $paymentLocale = "Paylane CreditCard";
+                $paymentLocale = "Paylane Credit Card";
             } else {
                 $paymentLocale = $this->l('PAYLANE_FRONTEND_PM_CREDITCARD');
             }
             break;
         case 'PAYLANE_FRONTEND_PM_BANKTRANSFER':
             if ($this->l('PAYLANE_FRONTEND_PM_BANKTRANSFER') == "PAYLANE_FRONTEND_PM_BANKTRANSFER") {
-                $paymentLocale = "Paylane BankTransfer";
+                $paymentLocale = "Paylane Bank Transfer";
             } else {
                 $paymentLocale = $this->l('PAYLANE_FRONTEND_PM_BANKTRANSFER');
             }
@@ -685,41 +686,41 @@ class Paylane extends PaymentModule
                 $paymentLocale = $this->l('PAYLANE_FRONTEND_PM_PAYPAL');
             }
             break;
-        case 'PAYLANE_FRONTEND_PM_DIRECTDEBIT':
-            if ($this->l('PAYLANE_FRONTEND_PM_DIRECTDEBIT') == "PAYLANE_FRONTEND_PM_DIRECTDEBIT") {
-                $paymentLocale = "Paylane DirectDebit";
-            } else {
-                $paymentLocale = $this->l('PAYLANE_FRONTEND_PM_DIRECTDEBIT');
-            }
-            break;
-        case 'PAYLANE_FRONTEND_PM_SOFORT':
-            if ($this->l('PAYLANE_FRONTEND_PM_SOFORT') == "PAYLANE_FRONTEND_PM_SOFORT") {
-                $paymentLocale = "Paylane Sofort";
-            } else {
-                $paymentLocale = $this->l('PAYLANE_FRONTEND_PM_SOFORT');
-            }
-            break;
-        case 'PAYLANE_FRONTEND_PM_IDEAL':
-            if ($this->l('PAYLANE_FRONTEND_PM_IDEAL') == "PAYLANE_FRONTEND_PM_IDEAL") {
-                $paymentLocale = "Paylane Ideal";
-            } else {
-                $paymentLocale = $this->l('PAYLANE_FRONTEND_PM_IDEAL');
-            }
-            break;
-        case 'PAYLANE_FRONTEND_PM_APPLEPAY':
-            if ($this->l('PAYLANE_FRONTEND_PM_APPLEPAY') == "PAYLANE_FRONTEND_PM_APPLEPAY") {
-                $paymentLocale = "Paylane ApplePay";
-            } else {
-                $paymentLocale = $this->l('PAYLANE_FRONTEND_PM_APPLEPAY');
-            }
-            break;
-        case 'PAYLANE_FRONTEND_PM_GOOGLEPAY':
-            if ($this->l('PAYLANE_FRONTEND_PM_GOOGLEPAY') == "PAYLANE_FRONTEND_PM_GOOGLEPAY") {
-                $paymentLocale = "Paylane GooglePay";
-            } else {
-                $paymentLocale = $this->l('PAYLANE_FRONTEND_PM_GOOGLEPAY');
-            }
-            break;
+        // case 'PAYLANE_FRONTEND_PM_DIRECTDEBIT':
+        //     if ($this->l('PAYLANE_FRONTEND_PM_DIRECTDEBIT') == "PAYLANE_FRONTEND_PM_DIRECTDEBIT") {
+        //         $paymentLocale = "Paylane Direct Debit";
+        //     } else {
+        //         $paymentLocale = $this->l('PAYLANE_FRONTEND_PM_DIRECTDEBIT');
+        //     }
+        //     break;
+        // case 'PAYLANE_FRONTEND_PM_SOFORT':
+        //     if ($this->l('PAYLANE_FRONTEND_PM_SOFORT') == "PAYLANE_FRONTEND_PM_SOFORT") {
+        //         $paymentLocale = "Paylane Sofort";
+        //     } else {
+        //         $paymentLocale = $this->l('PAYLANE_FRONTEND_PM_SOFORT');
+        //     }
+        //     break;
+        // case 'PAYLANE_FRONTEND_PM_IDEAL':
+        //     if ($this->l('PAYLANE_FRONTEND_PM_IDEAL') == "PAYLANE_FRONTEND_PM_IDEAL") {
+        //         $paymentLocale = "Paylane Ideal";
+        //     } else {
+        //         $paymentLocale = $this->l('PAYLANE_FRONTEND_PM_IDEAL');
+        //     }
+        //     break;
+        // case 'PAYLANE_FRONTEND_PM_APPLEPAY':
+        //     if ($this->l('PAYLANE_FRONTEND_PM_APPLEPAY') == "PAYLANE_FRONTEND_PM_APPLEPAY") {
+        //         $paymentLocale = "Paylane ApplePay";
+        //     } else {
+        //         $paymentLocale = $this->l('PAYLANE_FRONTEND_PM_APPLEPAY');
+        //     }
+        //     break;
+        // case 'PAYLANE_FRONTEND_PM_GOOGLEPAY':
+        //     if ($this->l('PAYLANE_FRONTEND_PM_GOOGLEPAY') == "PAYLANE_FRONTEND_PM_GOOGLEPAY") {
+        //         $paymentLocale = "Paylane GooglePay";
+        //     } else {
+        //         $paymentLocale = $this->l('PAYLANE_FRONTEND_PM_GOOGLEPAY');
+        //     }
+        //     break;
         case 'PAYLANE_FRONTEND_PM_BLIK':
             if ($this->l('PAYLANE_FRONTEND_PM_BLIK') == "PAYLANE_FRONTEND_PM_BLIK") {
                 $paymentLocale = "Paylane Blik";
@@ -749,14 +750,14 @@ class Paylane extends PaymentModule
             break;
         case 'PAYLANE_BACKEND_PM_CREDITCARD':
             if ($this->l('PAYLANE_BACKEND_PM_CREDITCARD') == "PAYLANE_BACKEND_PM_CREDITCARD") {
-                $paymentLocale = "Paylane CreditCard";
+                $paymentLocale = "Paylane Credit Card";
             } else {
                 $paymentLocale = $this->l('PAYLANE_BACKEND_PM_CREDITCARD');
             }
             break;
         case 'PAYLANE_BACKEND_PM_BANKTRANSFER':
             if ($this->l('PAYLANE_BACKEND_PM_BANKTRANSFER') == "PAYLANE_BACKEND_PM_BANKTRANSFER") {
-                $paymentLocale = "Paylane BankTransfer";
+                $paymentLocale = "Paylane Bank Transfer";
             } else {
                 $paymentLocale = $this->l('PAYLANE_BACKEND_PM_BANKTRANSFER');
             }
@@ -768,46 +769,46 @@ class Paylane extends PaymentModule
                 $paymentLocale = $this->l('PAYLANE_BACKEND_PM_PAYPAL');
             }
             break;
-        case 'PAYLANE_BACKEND_PM_DIRECTDEBIT':
-            if ($this->l('PAYLANE_BACKEND_PM_DIRECTDEBIT') == "PAYLANE_BACKEND_PM_DIRECTDEBIT") {
-                $paymentLocale = "Paylane DirectDebit";
-            } else {
-                $paymentLocale = $this->l('PAYLANE_BACKEND_PM_DIRECTDEBIT');
-            }
-            break;
-        case 'PAYLANE_BACKEND_PM_SOFORT':
-            if ($this->l('PAYLANE_BACKEND_PM_SOFORT') == "PAYLANE_BACKEND_PM_SOFORT") {
-                $paymentLocale = "Paylane Sofort";
-            } else {
-                $paymentLocale = $this->l('PAYLANE_BACKEND_PM_SOFORT');
-            }
-            break;
-        case 'PAYLANE_BACKEND_PM_IDEAL':
-            if ($this->l('PAYLANE_BACKEND_PM_IDEAL') == "PAYLANE_BACKEND_PM_IDEAL") {
-                $paymentLocale = "Paylane Ideal";
-            } else {
-                $paymentLocale = $this->l('PAYLANE_BACKEND_PM_IDEAL');
-            }
-            break;
-        case 'PAYLANE_BACKEND_PM_APPLEPAY':
-            if ($this->l('PAYLANE_BACKEND_PM_APPLEPAY') == "PAYLANE_BACKEND_PM_APPLEPAY") {
-                $paymentLocale = "Paylane ApplePay";
-            } else {
-                $paymentLocale = $this->l('PAYLANE_BACKEND_PM_APPLEPAY');
-            }
-            break;
-        case 'PAYLANE_BACKEND_PM_GOOGLEPAY':
-            if ($this->l('PAYLANE_BACKEND_PM_GOOGLEPAY') == "PAYLANE_BACKEND_PM_GOOGLEPAY") {
-                $paymentLocale = "Paylane GooglePay";
-            } else {
-                $paymentLocale = $this->l('PAYLANE_BACKEND_PM_GOOGLEPAY');
-            }
-            break;
+        // case 'PAYLANE_BACKEND_PM_DIRECTDEBIT':
+        //     if ($this->l('PAYLANE_BACKEND_PM_DIRECTDEBIT') == "PAYLANE_BACKEND_PM_DIRECTDEBIT") {
+        //         $paymentLocale = "Paylane Direct Debit";
+        //     } else {
+        //         $paymentLocale = $this->l('PAYLANE_BACKEND_PM_DIRECTDEBIT');
+        //     }
+        //     break;
+        // case 'PAYLANE_BACKEND_PM_SOFORT':
+        //     if ($this->l('PAYLANE_BACKEND_PM_SOFORT') == "PAYLANE_BACKEND_PM_SOFORT") {
+        //         $paymentLocale = "Paylane Sofort";
+        //     } else {
+        //         $paymentLocale = $this->l('PAYLANE_BACKEND_PM_SOFORT');
+        //     }
+        //     break;
+        // case 'PAYLANE_BACKEND_PM_IDEAL':
+        //     if ($this->l('PAYLANE_BACKEND_PM_IDEAL') == "PAYLANE_BACKEND_PM_IDEAL") {
+        //         $paymentLocale = "Paylane Ideal";
+        //     } else {
+        //         $paymentLocale = $this->l('PAYLANE_BACKEND_PM_IDEAL');
+        //     }
+        //     break;
+        // case 'PAYLANE_BACKEND_PM_APPLEPAY':
+        //     if ($this->l('PAYLANE_BACKEND_PM_APPLEPAY') == "PAYLANE_BACKEND_PM_APPLEPAY") {
+        //         $paymentLocale = "Paylane ApplePay";
+        //     } else {
+        //         $paymentLocale = $this->l('PAYLANE_BACKEND_PM_APPLEPAY');
+        //     }
+        //     break;
+        // case 'PAYLANE_BACKEND_PM_GOOGLEPAY':
+        //     if ($this->l('PAYLANE_BACKEND_PM_GOOGLEPAY') == "PAYLANE_BACKEND_PM_GOOGLEPAY") {
+        //         $paymentLocale = "Paylane GooglePay";
+        //     } else {
+        //         $paymentLocale = $this->l('PAYLANE_BACKEND_PM_GOOGLEPAY');
+        //     }
+        //     break;
         case 'PAYLANE_BACKEND_PM_BLIK':
             if ($this->l('PAYLANE_BACKEND_PM_BLIK') == "PAYLANE_BACKEND_PM_BLIK") {
                 $paymentLocale = "Paylane Blik";
             } else {
-                $paymentLocale = $this->l('PAYLANE_BACKEND_PM_Blik');
+                $paymentLocale = $this->l('PAYLANE_BACKEND_PM_BLIK');
             }
             break;
 
@@ -946,27 +947,45 @@ class Paylane extends PaymentModule
         }
 
         if ($this->l('PAYLANE_BACKEND_PRES_ABOUTTITLE2') == "PAYLANE_BACKEND_PRES_ABOUTTITLE2") {
-            $locale['about']['title2'] = "Co zrobić aby włączyć Apple Pay:";
+            $locale['about']['title2'] = "How to turn on Apple Pay";
         } else {
-            $locale['about']['title2'] = $this->l('PAYLANE_BACKEND_PRES_ABOUTTITLE');
+            $locale['about']['title2'] = $this->l('PAYLANE_BACKEND_PRES_ABOUTTITLE2');
         }
 
         if ($this->l('PAYLANE_BACKEND_PRES_ABOUTTEXT4') == "PAYLANE_BACKEND_PRES_ABOUTTEXT4") {
-            $locale['about']['text4'] = "1. Wyślij nam na adres support@paylane.com prośbę o uruchomienie Apple Pay na swoim koncie.";
+            $locale['about']['text4'] = "1. Let us know at support@paylane.com that you wish to add Apple Pay to your account.";
         } else {
-            $locale['about']['text4'] = $this->l('PAYLANE_BACKEND_PRES_ABOUTTEXT1');
+            $locale['about']['text4'] = $this->l('PAYLANE_BACKEND_PRES_ABOUTTEXT4');
         }
         if ($this->l('PAYLANE_BACKEND_PRES_ABOUTTEXT5') == "PAYLANE_BACKEND_PRES_ABOUTTEXT5") {
-            $locale['about']['text5'] = "2. Wklej certyfikat w pole certyfikat.";
+            $locale['about']['text5'] = "2. Paste the Apple Pay Certificate into the designated form in Apple Pay Configuration tab.";
         } else {
-            $locale['about']['text5'] = $this->l('PAYLANE_BACKEND_PRES_ABOUTTEXT2');
+            $locale['about']['text5'] = $this->l('PAYLANE_BACKEND_PRES_ABOUTTEXT5');
         }
         if ($this->l('PAYLANE_BACKEND_PRES_ABOUTTEXT6') == "PAYLANE_BACKEND_PRES_ABOUTTEXT6") {
-            $locale['about']['text6'] = "3. Poinformuj nas o wykonaniu powyższych czynności.";
+            $locale['about']['text6'] = "3. Let us know once you completed all of the above.";
         } else {
             $locale['about']['text6'] = $this->l('PAYLANE_BACKEND_PRES_ABOUTTEXT6');
         }
-
+        if ($this->l('PAYLANE_BACKEND_PRES_ABOUTTITLE3') == "PAYLANE_BACKEND_PRES_ABOUTTITLE3") {
+            $locale['about']['title3'] = "How to turn on Notifications";
+        } else {
+            $locale['about']['title3'] = $this->l('PAYLANE_BACKEND_PRES_ABOUTTITLE3');
+        }
+        if ($this->l('PAYLANE_BACKEND_PRES_ABOUTTEXT7') == "PAYLANE_BACKEND_PRES_ABOUTTEXT7") {
+            $locale['about']['text7'] = "1. Chose individual login and password and enter them below (it 
+            should be a safe login and password, not the same one as API login/
+            password or merchant panel login/password.";
+        } else {
+            $locale['about']['text7'] = $this->l('PAYLANE_BACKEND_PRES_ABOUTTEXT7');
+        }
+        if ($this->l('PAYLANE_BACKEND_PRES_ABOUTTEXT8') == "PAYLANE_BACKEND_PRES_ABOUTTEXT8") {
+            $locale['about']['text8'] = "2. Send to us on e-
+            mail (support@paylane.com) containing your notification login, password and notification 
+            address. We will reply you token to fill the form below";
+        } else {
+            $locale['about']['text8'] = $this->l('PAYLANE_BACKEND_PRES_ABOUTTEXT8');
+        }
         return $locale;
     }
 
@@ -1148,7 +1167,7 @@ class Paylane extends PaymentModule
         $generalForm = array();
         $generalForm[0] = array(
             'form' => array(
-                'legend' => array('title' => $this->l('Basic')),
+                'legend' => array('title' => $this->l('Basic Settings')),
                 'input' => array(
                     $this->getTextForm('GENERAL_MERCHANTID', $locale['mid'], true),
                     $this->getTextForm('GENERAL_HASH', $locale['hash'], true),
@@ -1163,7 +1182,7 @@ class Paylane extends PaymentModule
         );
         $generalForm[1] = array(
             'form' => array(
-                'legend' => array('title' => $this->l('Notification')),
+                'legend' => array('title' => $this->l('Notification Settings')),
                 'input' => array(
                     $this->getTextForm('NOTIFICATION_URL', $locale['notificationUrl'], false, true),
                     $this->getTextForm('NOTIFICATION_USER', $locale['notificationUser'], false),
@@ -1179,11 +1198,11 @@ class Paylane extends PaymentModule
         $options = array(
             array(
                 'value' => 1,
-                'label' => $this->l('Yes')
+                'label' => $this->l('On')
             ),
             array(
                 'value' => 0,
-                'label' => $this->l('No')
+                'label' => $this->l('Off')
             )
         );
 
@@ -1193,11 +1212,13 @@ class Paylane extends PaymentModule
 
             $fieldsList = array();
             foreach ($formFields as $formName => $formOptions) {
+                $formElem = array();
+
                 $formElem = array(
                     'type' => $formOptions['type'],
-                    'label' => $this->l($formOptions['label']),
+                    'label' => $formOptions['label'],
                     'name' => $formName,
-                    'required' => isset($formOptions['required']) ? $formOptions['required'] : true
+                    'required' => isset($formOptions['required']) ? $formOptions['required'] : true,
                 );
 
                 if ($formOptions['type'] == 'select') {
@@ -1215,9 +1236,33 @@ class Paylane extends PaymentModule
                 $fieldsList[] = $formElem;
             }
 
+            if ($formGroupName == 'SecureForm') {
+                $name = $this->l('SecureForm');
+            } elseif ($formGroupName == 'CreditCard') {
+                $name = $this->l('CreditCard');
+            } elseif ($formGroupName == 'PayPal') {
+                $name = $this->l('PayPal');
+            } elseif ($formGroupName == 'DirectDebit') {
+                $name = $this->l('DirectDebit');
+            } elseif ($formGroupName == 'Sofort') {
+                $name = $this->l('Sofort');
+            } elseif ($formGroupName == 'Ideal') {
+                $name = $this->l('Ideal');
+            } elseif ($formGroupName == 'ApplePay') {
+                $name = $this->l('ApplePay');
+            } elseif ($formGroupName == 'GooglePay') {
+                $name = $this->l('GooglePay');
+            } elseif ($formGroupName == 'BLIK') {
+                $name = $this->l('BLIK');
+            } elseif ($formGroupName == 'BankTransfer') {
+                $name = $this->l('BankTransfer');
+            } else {
+                $name = $this->l('Missing data');
+            }
+
             $generalForm[$i]['form'] = array(
                 'legend' => array(
-                    'title' => $this->l($formGroupName),
+                    'title' => $name,
                 ),
                 'input' => $fieldsList,
                 'submit' => array(
@@ -1259,9 +1304,18 @@ class Paylane extends PaymentModule
 
         foreach ($this->formBuilder as $formGroup) {
             foreach ($formGroup as $name => $options) {
-                $generalSetting[$name] = Tools::getValue($name, Configuration::get($name));
-            }
-        }
+                //$generalSetting[$name] = Tools::getValue($name, Configuration::get($name));
+
+                if ($options['type']  != 'select') {
+                    if (isset($options['default'])) {
+                        $def = $options['default'];
+                    } else {
+                        $def = $this->l('Missing data');
+                    }
+                    $generalSetting[$name] = $def;
+        } else {
+			$generalSetting[$name] = Tools::getValue($name, Configuration::get($name));
+        }}}
 
         return $generalSetting;
     }

@@ -24,7 +24,8 @@
  *  International Registered Trademark & Property of PayLane sp. z.o.o.
  */
 require_once(dirname(__FILE__).'/paymentAbstract.php');
-require_once(_PS_MODULE_DIR_ . 'paylane/class/Blik.php');
+require_once(_PS_MODULE_DIR_ . 'paylane/class/BLIK.php');
+require_once(_PS_MODULE_DIR_ . 'paylane/paylane.php');
 
 class PaylanePaymentBlikModuleFrontController extends PaylanePaymentAbstractModuleFrontController
 {
@@ -32,7 +33,8 @@ class PaylanePaymentBlikModuleFrontController extends PaylanePaymentAbstractModu
 
     public function getTemplateVars()
     {
-        $payment = new Blik();
+        $paylane = new Paylane();
+        $payment = new Blik($paylane);
         return $payment->getTemplateVars();
     }
 

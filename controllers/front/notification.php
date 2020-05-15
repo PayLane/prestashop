@@ -47,7 +47,10 @@ class PaylaneNotificationModuleFrontController extends ModuleFrontController
 
     public function initContent()
     {
-        parent::initContent();
+        if ($this->isOldPresta()) {
+            parent::initContent();
+        }
+        
         if (method_exists('Tools', 'getAllValues')) {
             $params = Tools::getAllValues();
         } else {
@@ -111,15 +114,42 @@ class PaylaneNotificationModuleFrontController extends ModuleFrontController
                 $order = Order::getByCartId($cartId);
             }
 
+            if (empty($order))
+            {
+                $cart = new Cart($cartId);
+                $customer = new Customer($cart->id_customer);
+                $currency = new Currency($cart->id_currency);
+                $total = (float)$cart->getOrderTotal(true, Cart::BOTH);
+
+                $this->module->validateOrder(
+                    $cart->id,
+                    Configuration::get('PS_OS_PAYMENT'),
+                    $total,
+                    $this->module->displayName,
+                    null,
+                    array(),
+                    (int)$currency->id,
+                    false,
+                    $customer->secure_key
+                );
+
+                $orderId = Order::getByCartId($cartId);
+
+                $db->update('order_payment', array(
+                    'transaction_id' => $idSale,
+                    'payment_method' => $orderId->payment
+                ), 'order_reference = "'.$orderId->reference.'"');
+            }
 
             if (!empty($order)) {
                 if ((float) $order->total_paid !== (float) $amount) {
-                    die('Wrong token 2');
+                    die('Wrong amount');
                 }
 
                 switch ($message['type']) {
                 case self::NOTIFICATION_TYPE_SALE:
-                    $orderStatus = Configuration::get('PS_OS_PAYMENT');
+                    $orderStatus = Configuration::get('PAYLANE_PAYMENT_STATUS_CLEARED');
+                
                     $order->setCurrentState($orderStatus);
                     $db->update('order_payment', array(
                         'transaction_id' => $idSale,

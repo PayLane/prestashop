@@ -29,7 +29,11 @@ require_once(_PS_MODULE_DIR_ . 'paylane/class/PaymentMethodAbstract.php');
 class ApplePay extends PaymentMethodAbstract
 {
     protected $paymentType = 'applepay';
+    private $paylane;
 
+    public function __construct(Module $paylane) {
+	    $this->paylane = $paylane;
+    }
     /*
     public function getPaymentOption()
     {
@@ -69,17 +73,18 @@ class ApplePay extends PaymentMethodAbstract
         return array(
             'paylane_applepay_label' => array(
                 'type' => 'text',
-                'label' => 'Label',
-                'default' => 'Apple Pay'
+                'label' => $this->paylane->l('PAYLANE_APPLE_PAY_LABEL', 'applepay'),
+                'default' => $this->paylane->l('PAYLANE_APPLE_PAY_DEFAULT_APPLE_PAY', 'applepay')
             ),
             'paylane_applepay_showImg' => array(
                 'type' => 'select',
-                'label' => 'Show payment method image',
+                'label' => $this->paylane->l('PAYLANE_APPLE_PAY_SHOW_PAYMENT_METHOD_IMAGE', 'applepay'),
                 'default' => 1
             ),
             'paylane_applepay_certificate' => array(
                 'type' => 'text',
-                'label' => 'Apple Pay Certificate',
+                'label' => $this->paylane->l('PAYLANE_APPLE_PAY_LABEL_APPLE_PAY_CERTIFICATE', 'applepay'),
+                'default' => $this->paylane->l('PAYLANE_APPLE_PAY_DEFAULT_APPLE_PAY_CERTIFICATE', 'applepay')
             ),
         );
     }

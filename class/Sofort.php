@@ -28,7 +28,11 @@ require_once(_PS_MODULE_DIR_ . 'paylane/class/PaymentMethodAbstract.php');
 class Sofort extends PaymentMethodAbstract
 {
     protected $paymentType = 'sofort';
+    private $paylane;
 
+    public function __construct(Module $paylane) {
+        $this->paylane = $paylane;
+    }
     /*
     public function getPaymentOption()
     {
@@ -90,12 +94,12 @@ class Sofort extends PaymentMethodAbstract
         return array(
             'paylane_sofort_label' => array(
                 'type' => 'text',
-                'label' => 'Label',
-                'default' => 'SOFORT'
+                'label' => $this->paylane->l('PAYLANE_SOFORT_LABEL', 'sofort'),
+                'default' => $this->paylane->l('PAYLANE_SOFORT_DEFAULT', 'sofort'),
             ),
             'paylane_sofort_showImg' => array(
                 'type' => 'select',
-                'label' => 'Show payment method image',
+                'label' => $this->paylane->l('PAYLANE_SOFORT_SHOW_PAYMENT_METHOD_IMAGE', 'sofort'),
                 'default' => 1
             ),
         );

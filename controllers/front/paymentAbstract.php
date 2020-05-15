@@ -57,12 +57,11 @@ class PaylanePaymentAbstractModuleFrontController extends ModuleFrontController
         $this->context->smarty->assign(array(
             'fullname' => $this->context->customer->firstname ." ". $this->context->customer->lastname,
                 'lang'    => $this->getLang(),
-                'redirectUrl' => $redirectUrl,
+                'redirectUrl' => $redirectUrl, //paylane response
                 'postParameters' => $postParameters,
                 'paymentMethod' => $this->paymentMethod,
                 'total' => $this->context->cart->getOrderTotal(true, Cart::BOTH),
         ));
-
 
         /*
            if ($this->isOldPresta()) {
@@ -77,14 +76,13 @@ class PaylanePaymentAbstractModuleFrontController extends ModuleFrontController
            );
            $this->setTemplate($templateName);
            }
-         */
-
+        */
 
         $templateName = str_replace(
             'PAYMENT_METHOD', strtolower($this->paymentMethod), $this->templateName
         );
-        $this->setTemplate($templateName);
 
+        $this->setTemplate($templateName);
     }
 
     protected function isOldPresta()
@@ -127,10 +125,16 @@ class PaylanePaymentAbstractModuleFrontController extends ModuleFrontController
         $postParameters = array();
         $postParameters['merchant_id'] = $paylaneSettings['merchant_id'];
         $postParameters['public_key_api'] = $paylaneSettings['public_key_api'];
-        $postParameters['transaction_id'] = str_pad((int)($cart->id), 4, "0", STR_PAD_LEFT);
+        $postParameters['transaction_id'] = str_pad((int)($cart->id), 4, "0", STR_PAD_LEFT); 
         $postParameters['return_url'] = $contextLink->getModuleLink(
             'paylane',
                 'validation',
+                array('cart_id' => $cart->id, 'secure_key' => $customer->secure_key, 'payment_method' => $this->paymentMethod),
+                true
+        );
+        $postParameters['3dsreturn_url'] = $contextLink->getModuleLink(
+            'paylane',
+                '3dsvalidation',
                 array('cart_id' => $cart->id, 'secure_key' => $customer->secure_key, 'payment_method' => $this->paymentMethod),
                 true
         );

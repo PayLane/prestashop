@@ -29,7 +29,13 @@ require_once(_PS_MODULE_DIR_ . 'paylane/class/PaymentMethodAbstract.php');
 class BankTransfer extends PaymentMethodAbstract
 {
     protected $paymentType = 'banktransfer';
+    private $paylane;
 
+    public function __construct(Module $paylane) {
+         $this->paylane = $paylane;
+         parent::__construct();
+    }
+    
     /*
     public function getPaymentOption()
     {
@@ -57,12 +63,12 @@ class BankTransfer extends PaymentMethodAbstract
         return array(
             'paylane_banktransfer_label' => array(
                 'type' => 'text',
-                'label' => 'Label',
-                'default' => 'Bank transfer'
+                'label' => $this->paylane->l('PAYLANE_BANK_TRANSFER_LABEL', 'banktransfer'),
+                'default' => $this->paylane->l('PAYLANE_BANK_TRANSFER_DEFAULT', 'banktransfer'),
             ),
             'paylane_banktransfer_showImg' => array(
                 'type' => 'select',
-                'label' => 'Show payment method image',
+                'label' => $this->paylane->l('PAYLANE_BANK_TRANSFER_SHOW_PAYMENT_METHOD_IMAGE', 'banktransfer'),
                 'default' => 1
             )
         );
@@ -82,7 +88,6 @@ class BankTransfer extends PaymentMethodAbstract
         if ($this->isOldPresta()) {
             $data['back_url'] = $context->link->getModuleLink('paylane', 'general', array(), true);
         }
-
         $apiResult = $this->client->bankTransferSale($data);
 
         if (!empty($apiResult['success']) && $apiResult['success']) {

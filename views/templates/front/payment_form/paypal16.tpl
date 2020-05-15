@@ -10,8 +10,8 @@
 <h3>{{$paymentMethodLabel}}</h3>
 
 <form action="{$action}" method="POST" class="paylane-form paylane-paypal">
-    <input type="hidden" name="payment_type" value="PaylanePayPal">
-    <input type="hidden" name="payment[additional_information][type]" value="PaylanePayPal">
+    <input type="hidden" name="payment_type" value="PayPal">
+    <input type="hidden" name="payment[additional_information][type]" value="PayPal">
     {l s='You will be redirected to PayPal website to pay for the order' mod='paylane'}
     <div class="cart_navigation">
         <a href="{$link->getPageLink('order', true, NULL, "step=3")|escape:'html'}" class="button-exclusive btn btn-primary">

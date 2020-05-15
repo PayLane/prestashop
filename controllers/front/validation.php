@@ -26,6 +26,7 @@
 
 require_once(dirname(__FILE__).'/../../core/core.php');
 require_once(dirname(__FILE__).'/paymentStatus.php');
+require_once(_PS_MODULE_DIR_ . 'paylane/paylane.php');
 
 class PaylaneValidationModuleFrontController extends ModuleFrontController
 {
@@ -46,6 +47,7 @@ class PaylaneValidationModuleFrontController extends ModuleFrontController
         $cartId = (int)Tools::getValue('cart_id');
         PrestaShopLogger::addLog('process return url', 1, null, 'Cart', $cartId, true);
         $orderId = Order::getOrderByCartId($cartId);
+        PrestaShopLogger::addLog('order id:', 1, null, 'Order', $orderId, true);
 
         $payment = Tools::getValue('payment');
         $paymentParams = null;
@@ -55,10 +57,10 @@ class PaylaneValidationModuleFrontController extends ModuleFrontController
 
         if (isset($paymentParams['type'])) {
             require_once(_PS_MODULE_DIR_ . 'paylane/class/' . $paymentParams['type'] . '.php');
-            $handler = new $paymentParams['type']();
+            $paylane = new Paylane();
+            $handler = new $paymentParams['type']($paylane);
             try {
                 $responseStatus = $this->getResponseStatus();
-
                 $result = $handler->handlePayment($paymentParams);
 
                 if ($result['success']) {
@@ -87,12 +89,14 @@ class PaylaneValidationModuleFrontController extends ModuleFrontController
 
         PrestaShopLogger::addLog('Paylane - return url order ID:'. $orderId, 1, null, 'Cart', $cartId, true);
 
+        $this->checkPaymentStatus($cartId, $responseStatus); //LK
+
         if ($orderId) {
             PrestaShopLogger::addLog('validate order', 1, null, 'Cart', $cartId, true);
             $this->validateOrder($cartId, $responseStatus['transaction_id']);
         } else {
             PrestaShopLogger::addLog('prestashop order not found', 1, null, 'Cart', $cartId, true);
-            $this->checkPaymentStatus($cartId, $responseStatus);
+            //$this->checkPaymentStatus($cartId, $responseStatus); //LK  
         }
     }
 
@@ -105,9 +109,9 @@ class PaylaneValidationModuleFrontController extends ModuleFrontController
         $responseStatus['description'] = Tools::getValue('description');
         $responseStatus['hash'] = Tools::getValue('hash');
         $responseStatus['transaction_id'] = Tools::getValue('id_sale');
-        $responseStatus['payment_method'] = Tools::getValue('payment_method');
-        $responseStatus['error_code'] = Tools::getValue('error_code');
-        $responseStatus['error_text'] = Tools::getValue('error_text');
+        $responseStatus['payment_method'] = (Tools::getValue('payment_method')) ? Tools::getValue('payment_method') : Tools::getValue('payment_type');
+        $responseStatus['error_code'] = Tools::getValue('error_code');  
+        $responseStatus['error_text'] = Tools::getValue('error_text');  
 
         return $responseStatus;
     }
@@ -168,6 +172,7 @@ class PaylaneValidationModuleFrontController extends ModuleFrontController
             if (!$isTransactionLogValid) {
                 $orderTotal = $responseStatus['amount'];
                 $transactionLog = $PaymentStatus->setTransactionLog($orderTotal, $responseStatus);
+                PrestaShopLogger::addLog('Paylane - transactionLog: '. print_r($transactionLog, true), 1, null, 'Cart', $cartId, true);
 
                 $generatedMd5Sig = $this->module->generateMd5sig($responseStatus);
 
@@ -201,7 +206,6 @@ class PaylaneValidationModuleFrontController extends ModuleFrontController
                 );
 
                 $PaymentStatus->saveTransactionLog($transactionLog, 0, $additionalInformation);
-
                 $PaymentStatus->validatePayment($cartId, $responseStatus, $responseStatus['status']);
             }
 
@@ -225,7 +229,7 @@ class PaylaneValidationModuleFrontController extends ModuleFrontController
                 $customer->secure_key
             );
 
-            $errorStatus = PaylanePaymentCore::getErrorMessage($responseStatus);
+            $errorStatus = PaylanePaymentCore::getErrorMessage($responseStatus); 
             $this->redirectError($errorStatus);
         } else {
             $this->redirectPaymentReturn();
@@ -295,7 +299,8 @@ class PaylaneValidationModuleFrontController extends ModuleFrontController
 
         if (isset($params['payment_type'])) {
             require_once(_PS_MODULE_DIR_ . 'paylane/class/' . $params['payment_type'] . '.php');
-            $handler = new $params['payment_type']();
+            $paylane = Module::getInstanceByName('paylane');
+            $handler = new $params['payment_type']($paylane);
             $result = $handler->handlePayment($paymentParams);
 
             if ($result['success']) {

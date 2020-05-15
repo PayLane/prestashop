@@ -29,6 +29,13 @@ require_once(_PS_MODULE_DIR_ . 'paylane/class/PayLaneCards.php');
 class CreditCard extends PaymentMethodAbstract
 {
     protected $paymentType = 'creditcard';
+    
+    private $paylane;
+
+    public function __construct(Module $paylane) {
+         $this->paylane = $paylane;
+         parent::__construct();
+    }
 
     /*
     public function getPaymentOption()
@@ -79,7 +86,8 @@ class CreditCard extends PaymentMethodAbstract
             $context->cookie->{'paylane_cards_'.$customerId} = $paymentParams['creditCardString'];
         }
 
-        if ((!empty($paymentParams['authorization_id']) || !empty($paymentParams['id_sale'])) && ($paymentParams['id_sale'] != "addNewCard")) { //using single-click way
+        //using single-click way
+        if ((!empty($paymentParams['authorization_id']) || !empty($paymentParams['id_sale'])) && ($paymentParams['id_sale'] != "addNewCard")) { 
 
             if (!$this->isValidate($paymentParams['id_sale'])) {
                 $result = array(
@@ -97,46 +105,59 @@ class CreditCard extends PaymentMethodAbstract
             $paymentParams['id_sale'] = $prepareSale['id_sale'];
 
             $result = $this->handleSingleClickPayment($paymentParams);
-        } else {
+        } else { // 3DS transaction type
             $data = array();
             $data['sale'] = $this->prepareSaleData();
             $data['customer'] = $this->prepareCustomerData();
             $data['card'] = array(
                 'token' => $paymentParams['token']
             );
-
-            if ((boolean)Configuration::get('paylane_creditcard_3ds')) { // with 3DS enabled
-                $data['back_url'] = $context->link->getModuleLink('paylane', '3dsvalidation', array(), true);
+            
+            if ((boolean)Configuration::get('paylane_creditcard_3ds')) { // 3DS check enabled
+                $data['back_url'] = $paymentParams['back_url']; 
+                
+                if ($this->isOldPresta()) {
+                    $data['back_url'] = $context->link->getModuleLink(
+                        'paylane',
+                            '3dsvalidation',
+                            array('cart_id' => $cart->id, 'secure_key' => $customer->secure_key, 'payment_method' => $this->paymentMethod),
+                            true);
+                }
                 $result = $this->client->checkCard3DSecureByToken($data);
 
                 if (isset($result['is_card_enrolled']) && $result['is_card_enrolled']) {
                     // if card enrolled
                     Tools::redirect($result['redirect_url']);
+
+                    //single click save credit card
+                    if ((!empty($result['id_sale'])) && ($context->customer->isLogged())) {
+                        $payLaneCards = new PayLaneCards();
+                        $customerId = $context->customer->id;
+                        $creditCardString = $context->cookie->{'paylane_cards_'.$customerId};
+                        unset($context->cookie->{'paylane_cards_'.$customerId});
+                        if (!$payLaneCards->checkIfCardAlreadyExist($customerId, $creditCardString)) {
+                            $payLaneCards->insertCard($result['id_sale'], $customerId, $creditCardString);
+                        }
+                    }
                     die;
-                } elseif (isset($result['is_card_enrolled']) && ($result['is_card_enrolled'] == false)) {
-                    // if card not enrolled
-                    $ds3Status = $this->client->saleBy3DSecureAuthorization(array (
-                        'id_3dsecure_auth' => $result['id_3dsecure_auth']
-                    ));
-                    if (isset($ds3Status['success']) && $ds3Status['success']) {
-                        $result = array(
-                            'order_status' => Configuration::get('PAYLANE_PAYMENT_STATUS_PERFORMED'),
-                            'success' => $ds3Status['success'],
-                            'id_sale' => $ds3Status['id_sale']
-                        );
-                    } else {
-                        $result = array(
-                            'order_status' => 'ERROR',
-                            'success' => $ds3Status['success'],
-                            'error' => $ds3Status['error']
-                        );
-                        if ($this->isOldPresta()) {
-                            $result['order_status'] = Configuration::get('PAYLANE_PAYMENT_STATUS_FAILED');
+                    
+                }else{
+                    $result = $this->client->cardSaleByToken($data);
+
+                    //single click save credit card
+                    if ((!empty($result['id_sale'])) && ($context->customer->isLogged())) {
+                        $payLaneCards = new PayLaneCards();
+                        $customerId = $context->customer->id;
+                        $creditCardString = $context->cookie->{'paylane_cards_'.$customerId};
+                        unset($context->cookie->{'paylane_cards_'.$customerId});
+                        if (!$payLaneCards->checkIfCardAlreadyExist($customerId, $creditCardString)) {
+                            $payLaneCards->insertCard($result['id_sale'], $customerId, $creditCardString);
                         }
                     }
                 }
-            } else { // Non 3DS transaction type
-                $result = $this->client->cardSaleByToken($data);
+                
+            } else { // 3DS check disabled
+                $result = $this->client->cardSaleByToken($data); 
 
                 //single click save credit card
                 if ((!empty($result['id_sale'])) && ($context->customer->isLogged())) {
@@ -206,29 +227,29 @@ class CreditCard extends PaymentMethodAbstract
         return array(
             'paylane_creditcard_label' => array(
                 'type' => 'text',
-                'label' => 'Label',
-                'default' => 'Credit card'
+                'label' => $this->paylane->l('PAYLANE_CREDITCARD_LABEL', 'creditcard'),
+                'default' => $this->paylane->l('PAYLANE_CREDITCARD_DEFAULT', 'creditcard'),
             ),
             'paylane_creditcard_showImg' => array(
                 'type' => 'select',
-                'label' => 'Show payment method image',
+                'label' => $this->paylane->l('PAYLANE_CREDITCARD_SHOW_PAYMENT_METHOD_IMAGE', 'creditcard'),
                 'default' => 1
             ),
             'paylane_creditcard_fraud_check_override' => array(
                 'type' => 'select',
-                'label' => 'Override fraud check'
+                'label' => $this->paylane->l('PAYLANE_CREDITCARD_FRAUD_CHECK_OVERRIDE', 'creditcard'),
             ),
             'paylane_creditcard_fraud_check' => array(
                 'type' => 'select',
-                'label' => 'Fraud check'
+                'label' => $this->paylane->l('PAYLANE_CREDITCARD_FRAUD_CHECK', 'creditcard'),
             ),
             'paylane_creditcard_avs_override' => array(
                 'type' => 'select',
-                'label' => 'Override AVS level',
+                'label' => $this->paylane->l('PAYLANE_CREDITCARD_AVS_OVERRIDE', 'creditcard'),
             ),
             'paylane_creditcard_avs' => array(
                 'type' => 'select',
-                'label' => 'AVS level',
+                'label' => $this->paylane->l('PAYLANE_CREDITCARD_AVS_LEVEL', 'creditcard'),
                 'options' => array(
                     array(
                         'value' => 0,
@@ -254,11 +275,12 @@ class CreditCard extends PaymentMethodAbstract
             ),
             'paylane_creditcard_3ds' => array(
                 'type' => 'select',
-                'label' => '3DS Check'
+                'label' => $this->paylane->l('PAYLANE_CREDITCARD_3DS_CHECK', 'creditcard'),
+                'default' => 1
             ),
             'paylane_creditcard_blocked_amount' => array(
                 'type' => 'text',
-                'label' => 'Amount to block during authorization process',
+                'label' => $this->paylane->l('PAYLANE_CREDITCARD_BLOCKED_AMOUNT', 'creditcard'),
                 'required' => false,
                 'default' => 1
             ),
@@ -275,7 +297,7 @@ class CreditCard extends PaymentMethodAbstract
         $context = Context::getContext();
         $context->smarty->assign($this->getTemplateVars());
         return $this->fetchTemplate('front/payment_form/credit_card.tpl');
-    }
+    } 
 
     public function getTemplateVars()
     {

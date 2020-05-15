@@ -12,6 +12,8 @@
 
         <form action="{$postParameters['return_url']}" method="POST" id="paylane-form-credit-card" class="paylane-form paylane-credit-card" name="paylane-form-credit-card">
             <input type="hidden" name="payment[additional_information][type]" value="CreditCard">
+            <input type="hidden" name="payment[additional_information][back_url]" value="{$postParameters['3dsreturn_url']|escape:'htmlall':'UTF-8'}" />
+            <input type="hidden" name="payment_type" value="CreditCard">
             <input id="paylane-payment-token" type="hidden" name="payment[additional_information][token]" value="">
             <input id="paylane-payment-creditCardString" type="hidden" name="payment[additional_information][creditCardString]" value="">
             <input id="paylane-payment-credit-card-validate" type="hidden" value="1">

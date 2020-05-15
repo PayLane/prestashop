@@ -25,11 +25,15 @@
 		    <div class="content">
 		        {foreach $tabs as $tab}
 			          <div class="tab-content" id="paylane-tabs-{$tab.id|escape:'htmlall':'UTF-8'}" style="display:{if isset($selectedTab) && $tab.id==$selectedTab}block{else}none{/if}">
-                    {html_entity_decode($tab.content|escape:'htmlall':'UTF-8')}<h2>
-							  {$presentation.about.title2|escape:'htmlall':'UTF-8'}</h2>
+                    {html_entity_decode($tab.content|escape:'htmlall':'UTF-8')}
+							  <h2>{$presentation.about.title2|escape:'htmlall':'UTF-8'}</h2>
 								<p>{$presentation.about.text4|escape:'htmlall':'UTF-8'}</p>
 								<p>{$presentation.about.text5|escape:'htmlall':'UTF-8'}</p>
 								<p>{$presentation.about.text6|escape:'htmlall':'UTF-8'}</p>
+								<br>
+								<h2>{$presentation.about.title3|escape:'htmlall':'UTF-8'}</h2>
+								<p>{$presentation.about.text7|escape:'htmlall':'UTF-8'}</p>
+								<p>{$presentation.about.text8|escape:'htmlall':'UTF-8'}</p>
 			          </div>
 		        {/foreach}
 		    </div>

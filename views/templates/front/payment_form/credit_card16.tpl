@@ -11,9 +11,12 @@
 
 <form action="{$action}" method="POST" id="paylane-form-credit-card" class="paylane-form paylane-credit-card">
     <input type="hidden" name="payment_type" value="CreditCard">
+    {* <input type="hidden" name="payment[additional_information][back_url]" value="{$postParameters['3dsreturn_url']|escape:'htmlall':'UTF-8'}" /> *}
+    <input type="hidden" id="payment_params:back_url" name="payment[additional_information][back_url]" value="{$postParameters['3dsreturn_url']}">
     <input type="hidden" name="payment[additional_information][type]" value="CreditCard">
     <input id="paylane-payment-token" type="hidden" name="payment[additional_information][token]" value="">
     <input id="paylane-payment-creditCardString" type="hidden" name="payment[additional_information][creditCardString]" value="">
+   
     {if !$isSingleClickActive || ($isSingleClickActive && $isFirstOrder)}
         {if $creditCardsArray}
         <div class="field">

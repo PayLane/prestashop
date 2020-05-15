@@ -28,6 +28,12 @@ require_once(_PS_MODULE_DIR_ . 'paylane/class/PaymentMethodAbstract.php');
 class SecureForm extends PaymentMethodAbstract
 {
     protected $paymentType = 'secureform';
+    private $paylane;
+
+    public function __construct(Module $paylane) {
+        $this->paylane = $paylane;
+        parent::__construct();
+    }
 
     protected $availableLangs = array(
         'pl', 'en', 'de', 'es', 'fr', 'nl', 'it'
@@ -54,18 +60,17 @@ class SecureForm extends PaymentMethodAbstract
         return $paymentOption;
     }
     */
-
     public function getPaymentConfig()
     {
         return array(
             'paylane_secureform_label' => array(
                 'type' => 'text',
-                'label' => 'Label',
-                'default' => 'Secure Form'
+                'label' => $this->paylane->l('PAYLANE_SECUREFORM_LABEL', 'secureform'),
+                'default' => $this->paylane->l('PAYLANE_SECUREFORM_DEFAULT', 'secureform'),
             ),
             'paylane_secureform_showImg' => array(
                 'type' => 'select',
-                'label' => 'Show payment method image',
+                'label' => $this->paylane->l('PAYLANE_SECUREFORM_SHOW_PAYMENT_METHOD_IMAGE', 'secureform'),
                 'default' => 1
             ),
         );
@@ -102,6 +107,7 @@ class SecureForm extends PaymentMethodAbstract
 
     protected function getFormData()
     {
+
         $result = array();
 
         $context = Context::getContext();

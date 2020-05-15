@@ -28,7 +28,13 @@
 class PaylanePaymentCore
 {
     protected static $paylaneSecureFormUrl = 'https://secure.paylane.com/order/cart.html';
-    protected static $paylaneApiUrl = 'TODO';
+    protected static $paylaneApiUrl = '';
+
+    private $paylane;
+
+    public function __construct(Module $paylane) {
+        $this->paylane = $paylane;
+    }
 
     public static $allowedCountries = array(
         'ALA','ALB','DZA','ASM','AND','AGO','AIA','ATA','ATG','ARG','ARM','ABW','AUS','AUT','AZE','BHS','BHR','BGD',
@@ -67,30 +73,30 @@ class PaylanePaymentCore
             'name' => 'Paylane PayPal',
             'allowedCountries' => 'ALL'
         ),
-        'DIRECTDEBIT' => array(
-            'name' => 'Paylane DirectDebit',
-            'allowedCountries' => 'ALL'
-        ),
-        'SOFORT' => array(
-            'name' => 'Paylane Sofort',
-            'allowedCountries' => 'ALL'
-        ),
-        'IDEAL' => array(
-            'name' => 'Paylane Ideal',
-            'allowedCountries' => 'ALL'
-        ),
-        'APPLEPAY' => array(
-            'name' => 'Paylane ApplePay',
-            'allowedCountries' => 'ALL'
-        ),
-        'GOOGLEPAY' => array(
-            'name' => 'Paylane GooglePay',
-            'allowedCountries' => 'ALL'
-        ),
         'BLIK' => array(
-            'name' => 'Paylane Blik',
-            'allowedCountries' => 'ALL'
+            'name' => 'Paylane BLIK',
+            'allowedCountries' => 'ALL',
         ),
+        // 'DIRECTDEBIT' => array(
+        //     'name' => 'Paylane DirectDebit',
+        //     'allowedCountries' => 'ALL'
+        // ),
+        // 'SOFORT' => array(
+        //     'name' => 'Paylane Sofort',
+        //     'allowedCountries' => 'ALL'
+        // ),
+        // 'IDEAL' => array(
+        //     'name' => 'Paylane Ideal',
+        //     'allowedCountries' => 'ALL'
+        // ),
+        // 'APPLEPAY' => array(
+        //     'name' => 'Paylane ApplePay',
+        //     'allowedCountries' => 'ALL'
+        // ),
+        // 'GOOGLEPAY' => array(
+        //     'name' => 'Paylane GooglePay',
+        //     'allowedCountries' => 'ALL'
+        // ),
     );
 
     public static function getPaymentMethods()
@@ -192,16 +198,23 @@ class PaylanePaymentCore
         return $status;
     }
 
-    public static function getErrorMessage($responseStatus) {
-        $errorStatus = 'Paylane Error:';
-        if (isset($responseStatus['error_code'])) {
-            $errorStatus .= ' '. $responseStatus['error_code'];
+    public static function getErrorMessage($responseStatus) { 
+        $errorStatus = ('Paylane Error:');
+        $api_url = 'https://payto.app/api/translate_error/pl/';
+        
+        if (isset($responseStatus['error_code'])) { //Secureform, BankTransfer 
+            $error_code = $api_url . $responseStatus['error_code'];
+            $translatedErrorCode = file_get_contents($error_code);
+            $errorStatus .= ' '. $translatedErrorCode;
         }
+        // if (isset($responseStatus['error_code'])) {
+        //     $errorStatus .= ' '. $responseStatus['error_code'];
+        // }
         if (isset($responseStatus['error_text'])) {
             $errorStatus .= ' '. $responseStatus['error_text'];
         }
-
-        return $errorStatus;
+        
+        return $errorStatus; 
     }
 
     public static function getCountryIso3ByIso2($iso2)

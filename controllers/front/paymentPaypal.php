@@ -25,15 +25,17 @@
  */
 
 require_once(dirname(__FILE__).'/paymentAbstract.php');
-require_once(_PS_MODULE_DIR_ . 'paylane/class/PaylanePayPal.php');
+require_once(_PS_MODULE_DIR_ . 'paylane/class/PayPal.php');
+require_once(_PS_MODULE_DIR_ . 'paylane/paylane.php');
  
 class PaylanePaymentPaypalModuleFrontController extends PaylanePaymentAbstractModuleFrontController
 {
     protected $paymentMethod = 'PAYPAL';
-
+    
     public function getTemplateVars()
     {
-        $payment = new PaylanePayPal();
+        $paylane = new Paylane();
+        $payment = new PayPal($paylane);
         return $payment->getTemplateVars();
     }
 }

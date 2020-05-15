@@ -34,7 +34,6 @@ class PayLaneRestClient
      * @var string
      */
     protected $api_url = 'https://direct.paylane.com/rest/';
-
     /**
      * @var string
      */
@@ -385,7 +384,8 @@ class PayLaneRestClient
      */
     public function paypalStopRecurring($params)
     {
-        return $this->call('paypal/stopRecurring',
+        return $this->call(
+            'paypal/stopRecurring',
             'post',
             $params
         );
@@ -528,6 +528,7 @@ class PayLaneRestClient
             $params
         );
     }
+
     /**
      * Performs Apple Pay authorization
      *
@@ -642,7 +643,7 @@ class PayLaneRestClient
      * @return array
      * @throws \Exception
      */
-    protected function pushData($method, $method_type, $request)
+    protected function pushData($method, $method_type, $request) 
     {
         $ch = curl_init();
 
